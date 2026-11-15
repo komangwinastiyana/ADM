@@ -4,32 +4,300 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Generator ATP</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
 <style>
-  :root{--bg:#f2f5f2;--card:#ffffff;--tx:#18241e;--mut:#5b6860;--bd:#d5ddd7;color-scheme:light}
-  @media (prefers-color-scheme:dark){:root{--bg:#121815;--card:#1a221e;--tx:#e6ece8;--mut:#9aa8a0;--bd:#2f3b35;color-scheme:dark}}
-  *{box-sizing:border-box}
-  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-    background:var(--bg);color:var(--tx);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-    padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
-  main{width:100%;max-width:520px;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:28px}
-  h1{margin:0 0 8px;font-size:26px}
-  p{margin:0 0 20px;color:var(--mut)}
-  .tombol{display:inline-block;padding:12px 20px;background:#1d6b4e;color:#fff;
-    font:600 16px system-ui,sans-serif;border-radius:9px;text-decoration:none}
-  .tombol:hover{background:#175a41}
-  .tombol:focus-visible{outline:3px solid #7fcfae;outline-offset:2px}
-  small{display:block;margin-top:16px;color:var(--mut);font-size:13px}
+:root{
+  --bg:#f2f5f2;--card:#ffffff;--tx:#18241e;--mut:#5b6860;--bd:#d5ddd7;
+  --ac:#1d6b4e;--acx:#ffffff;--err:#b3261e;
+  --font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#121815;--card:#1a221e;--tx:#e6ece8;--mut:#9aa8a0;--bd:#2f3b35;
+  --ac:#5fc19a;--acx:#0b1a13;--err:#f2958e;color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.55 var(--font);padding:20px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:1180px;margin:0 auto}
+header{margin-bottom:18px}
+h1{margin:0 0 4px;font-size:24px;font-weight:800}
+header p{margin:0;color:var(--mut);max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;min-width:0}
+.side{position:sticky;top:12px}
+@media (max-width:860px){.side{position:static}}
+.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
+h2{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+label:first-of-type{margin-top:0}
+input,select,textarea{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:9px 11px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+textarea{resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{font:inherit;font-weight:600;border-radius:9px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:9px 14px;cursor:pointer}
+button.p{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+button.big{width:100%;padding:13px 14px;font-size:16px;margin-top:16px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.note{font-size:13px;color:var(--mut);margin:8px 0 0}
+.note.err{color:var(--err)}
+a{color:var(--ac)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.empty{display:flex;flex-direction:column;gap:10px;padding:34px 22px}
+.empty h3{margin:0;font-size:18px}
+.empty ol{margin:0;padding-left:20px;color:var(--mut)}
+.working{display:flex;gap:12px;align-items:center;padding:22px}
+.spin{width:22px;height:22px;border-radius:50%;border:3px solid var(--bd);border-top-color:var(--ac);animation:sp .9s linear infinite;flex:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.paper{background:#fff;color:#111;border:1px solid var(--bd);border-radius:6px;padding:26px 24px;font-family:Arial,Helvetica,sans-serif;font-size:13px;overflow-x:auto}
+.paper h3{text-align:center;margin:0 0 6px;font-size:17px;color:#111}
+.paper h4{text-align:center;margin:0 0 14px;font-size:14px;color:#111}
+.paper table{border-collapse:collapse;width:100%;margin-bottom:14px;min-width:560px}
+.paper td,.paper th{border:1px solid #444;padding:5px 7px;vertical-align:top;text-align:left;color:#111}
+.paper th{background:#dfeee6}
+.paper .sem td{background:#eef6f1;font-weight:700}
+.paper .ph{color:#a4501a}
+.paper p{margin:0 0 4px}
+details.ed summary{cursor:pointer;font-weight:700;font-size:14px}
+details.ed[open] summary{margin-bottom:10px}
+.row{border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:10px}
+.row .two{grid-template-columns:1fr 90px}
+.row label{margin-top:8px}
 </style>
 </head>
 <body>
-<main>
-  <h1>Generator ATP</h1>
-  <p>Susun Alur Tujuan Pembelajaran Kurikulum Merdeka dengan cepat. Isi identitas guru dan mata pelajaran, lalu unduh hasilnya sebagai file Word.</p>
-  <a class="tombol" href="https://claude.ai/artifact/Y2NTTdcXua6CnAVa33UnpK"
-     target="_blank" rel="noopener noreferrer">
-    Buat ATP
-  </a>
-  <small>Tombol membuka aplikasi di tab baru. Diperlukan akun Claude untuk memakainya.</small>
-</main>
+<div class="wrap">
+<header>
+<h1>Generator ATP</h1>
+<p>Isi identitas guru dan mata pelajaran, tekan satu tombol. Alur Tujuan Pembelajaran langsung tersusun dan siap diunduh sebagai file Word.</p>
+</header>
+
+<div class="grid">
+<section class="card side">
+<h2>Identitas</h2>
+<label for="penyusun">Nama guru (penyusun)</label>
+<input id="penyusun" autocomplete="name" placeholder="Contoh: Komang Winastiyana, S.Pd.">
+<label for="satuan">Nama sekolah</label>
+<input id="satuan" autocomplete="organization" placeholder="Contoh: SMP Negeri 1 Kendari">
+<label for="mapel">Mata pelajaran</label>
+<input id="mapel" list="mapel-list" placeholder="Contoh: Matematika">
+<datalist id="mapel-list">
+<option value="Matematika"><option value="Bahasa Indonesia"><option value="Bahasa Inggris"><option value="IPA"><option value="IPS"><option value="PPKn"><option value="Pendidikan Agama Islam dan Budi Pekerti"><option value="Informatika"><option value="PJOK"><option value="Seni Rupa"><option value="Fisika"><option value="Kimia"><option value="Biologi"><option value="Ekonomi"><option value="Sejarah"><option value="Geografi"><option value="Sosiologi">
+</datalist>
+<div class="two">
+<div><label for="fase">Fase</label><select id="fase"></select></div>
+<div><label for="kelas">Kelas</label><select id="kelas"></select></div>
+</div>
+<label for="tahun">Tahun ajaran</label>
+<input id="tahun" inputmode="numeric" placeholder="2026/2027">
+<label for="kunci">Kunci API Gemini (gratis)</label>
+<input id="kunci" type="password" autocomplete="off" placeholder="Tempel kunci dari Google AI Studio">
+<p class="note" style="margin-top:4px">Belum punya? Buka <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a>, masuk dengan akun Google, lalu buat kunci. Kunci hanya disimpan di browser ini.</p>
+<button class="p big" id="gen" disabled>Buat ATP sekarang</button>
+<p class="note" id="gmsg">Capaian pembelajaran, bab, tujuan pembelajaran, dan alokasi JP dibuat otomatis sesuai mata pelajaran dan kelas.</p>
+</section>
+
+<section class="stack">
+<div class="card empty" id="empty">
+<h3>Hasil ATP muncul di sini</h3>
+<ol>
+<li>Isi nama guru, sekolah, dan mata pelajaran.</li>
+<li>Pilih fase dan kelas.</li>
+<li>Tekan Buat ATP sekarang, lalu unduh file Word.</li>
+</ol>
+</div>
+<div class="card working" id="working" hidden><div class="spin"></div><div><b>Sedang menyusun ATP</b><div class="note" style="margin:0">Biasanya selesai dalam setengah menit.</div></div></div>
+<div id="result" hidden class="stack">
+<div class="card">
+<div class="bar">
+<button class="p" id="dl">Unduh Word (.docx)</button>
+<button id="again">Buat ulang</button>
+</div>
+<p class="note" id="msg">Periksa kembali isinya dan sesuaikan dengan CP resmi dan kebutuhan sekolah sebelum dipakai.</p>
+</div>
+<div class="paper" id="paper"></div>
+<div class="card">
+<details class="ed">
+<summary>Sunting hasil secara manual (opsional)</summary>
+<label for="cp">Capaian pembelajaran</label>
+<textarea id="cp" rows="6"></textarea>
+<h2 style="margin-top:16px">Materi dan tujuan pembelajaran</h2>
+<div id="rows"></div>
+<div class="bar"><button id="add">Tambah baris</button></div>
+<p class="note">Satu baris di kolom tujuan pembelajaran sama dengan satu TP. Perubahan langsung tampil di lembar di atas.</p>
+</details>
+</div>
+</div>
+</section>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+<script>
+const FASE={A:['I','II'],B:['III','IV'],C:['V','VI'],D:['VII','VIII','IX'],E:['X'],F:['XI','XII']};
+const KATA={I:'Satu',II:'Dua',III:'Tiga',IV:'Empat',V:'Lima',VI:'Enam',VII:'Tujuh',VIII:'Delapan',IX:'Sembilan',X:'Sepuluh',XI:'Sebelas',XII:'Dua Belas'};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const val=(v,ph)=>v.trim()?{t:v.trim(),ph:false}:{t:ph,ph:true};
+const lines=t=>t.split('\n').map(x=>x.trim()).filter(Boolean);
+
+function defaultTahun(){const d=new Date(),y=d.getFullYear();return d.getMonth()>=6?`${y}/${y+1}`:`${y-1}/${y}`}
+const S={penyusun:'',satuan:'',mapel:'',fase:'D',kelas:'VII',tahun:defaultTahun(),kunci:'',cp:'',rows:[]};
+try{const k=JSON.parse(localStorage.getItem('atp-identitas')||'{}');['penyusun','satuan','kunci'].forEach(f=>{if(typeof k[f]==='string')S[f]=k[f]})}catch(e){}
+function saveId(){try{localStorage.setItem('atp-identitas',JSON.stringify({penyusun:S.penyusun,satuan:S.satuan,kunci:S.kunci}))}catch(e){}}
+
+const fk=()=>`${S.fase} / ${S.kelas} (${KATA[S.kelas]})`;
+const total=()=>S.rows.reduce((a,r)=>a+(parseInt(r.jp)||0),0);
+const sorted=()=>S.rows.map((r,i)=>({r,i})).sort((a,b)=>a.r.sem.localeCompare(b.r.sem)||a.i-b.i).map(x=>x.r);
+
+function fillFase(){
+  $('fase').innerHTML=Object.keys(FASE).map(f=>`<option ${f===S.fase?'selected':''}>${f}</option>`).join('');
+  fillKelas();
+}
+function fillKelas(){
+  if(!FASE[S.fase].includes(S.kelas))S.kelas=FASE[S.fase][0];
+  $('kelas').innerHTML=FASE[S.fase].map(k=>`<option ${k===S.kelas?'selected':''}>${k}</option>`).join('');
+}
+function renderRows(){
+  $('rows').innerHTML=S.rows.map((r,i)=>`<div class="row" data-i="${i}">
+  <div class="two"><div><label>Elemen</label><input data-f="el" value="${esc(r.el)}"></div>
+  <div><label>Semester</label><select data-f="sem"><option ${r.sem==='1'?'selected':''}>1</option><option ${r.sem==='2'?'selected':''}>2</option></select></div></div>
+  <div class="two"><div><label>Materi pokok (bab)</label><input data-f="bab" value="${esc(r.bab)}"></div>
+  <div><label>JP</label><input data-f="jp" inputmode="numeric" value="${esc(r.jp)}"></div></div>
+  <label>Tujuan pembelajaran (satu per baris)</label><textarea data-f="tp" rows="5">${esc(r.tp)}</textarea>
+  <div class="bar" style="margin-top:8px"><button data-del="${i}">Hapus baris</button></div></div>`).join('');
+}
+function renderPaper(){
+  const p=val(S.penyusun,'[Nama Guru Anda]'),s=val(S.satuan,'[Nama Sekolah Anda]');
+  const ph=x=>x.ph?`<span class="ph">${esc(x.t)}</span>`:esc(x.t);
+  let body='',cur='';
+  sorted().forEach((r,n)=>{
+    if(r.sem!==cur){cur=r.sem;body+=`<tr class="sem"><td colspan="5">SEMESTER ${esc(cur)}</td></tr>`}
+    body+=`<tr><td>${n+1}.</td><td><b>${esc(r.el)}</b></td><td><b>${esc(r.bab)}</b></td><td>${lines(r.tp).map(l=>`<p>${esc(l)}</p>`).join('')}</td><td>${esc(r.jp)}${r.jp.trim()?' JP':''}</td></tr>`;
+  });
+  $('paper').innerHTML=`<h3>ALUR TUJUAN PEMBELAJARAN (ATP)</h3><h4>MATA PELAJARAN: ${esc((S.mapel||'').toUpperCase())}</h4>
+  <table><tr><td width="35%"><b>Nama Penyusun</b></td><td>${ph(p)}</td></tr><tr><td><b>Satuan Pendidikan</b></td><td>${ph(s)}</td></tr>
+  <tr><td><b>Fase/Kelas</b></td><td>${esc(fk())}</td></tr><tr><td><b>Tahun Ajaran</b></td><td>${esc(S.tahun)}</td></tr></table>
+  <p><b>Capaian Pembelajaran Fase ${esc(S.fase)}:</b></p><p style="margin-bottom:12px">${esc(S.cp)}</p>
+  <table><tr><th width="5%">No.</th><th width="14%">Elemen</th><th width="18%">Materi Pokok (Bab)</th><th>Tujuan Pembelajaran (TP)</th><th width="10%">Alokasi Waktu (JP)</th></tr>${body}
+  <tr><td colspan="4"><b>Total</b></td><td><b>${total()} JP</b></td></tr></table>`;
+}
+function show(which){
+  $('empty').hidden=which!=='empty';
+  $('working').hidden=which!=='working';
+  $('result').hidden=which!=='result';
+}
+function chkGen(){$('gen').disabled=busy||!S.mapel.trim()||!S.kunci.trim()}
+
+let busy=false;
+['penyusun','satuan','mapel','tahun','kunci'].forEach(k=>{
+  $(k).value=S[k];
+  $(k).addEventListener('input',e=>{S[k]=e.target.value;if(k==='penyusun'||k==='satuan'||k==='kunci')saveId();if(!$('result').hidden)renderPaper();chkGen()});
+});
+$('cp').addEventListener('input',e=>{S.cp=e.target.value;renderPaper()});
+$('fase').addEventListener('change',e=>{S.fase=e.target.value;fillKelas();if(!$('result').hidden)renderPaper()});
+$('kelas').addEventListener('change',e=>{S.kelas=e.target.value;if(!$('result').hidden)renderPaper()});
+$('rows').addEventListener('input',e=>{const row=e.target.closest('.row');if(!row||!e.target.dataset.f)return;S.rows[+row.dataset.i][e.target.dataset.f]=e.target.value;renderPaper()});
+$('rows').addEventListener('change',e=>{const row=e.target.closest('.row');if(row&&e.target.dataset.f==='sem'){S.rows[+row.dataset.i].sem=e.target.value;renderPaper()}});
+$('rows').addEventListener('click',e=>{const d=e.target.dataset.del;if(d===undefined)return;S.rows.splice(+d,1);renderRows();renderPaper()});
+$('add').addEventListener('click',()=>{const last=S.rows[S.rows.length-1];S.rows.push({sem:last?last.sem:'1',el:'',bab:'',jp:'',tp:''});renderRows();renderPaper()});
+
+/* Unduh Word */
+function buildDoc(){
+  const D=window.docx,W=[600,1300,1800,4938,1000],B={top:60,bottom:60,left:80,right:80};
+  const run=(t,o={})=>new D.TextRun({text:t,font:'Arial',size:21,...o});
+  const para=(t,o={},al)=>new D.Paragraph({children:[run(t,o)],alignment:al,spacing:{after:60}});
+  const cell=(kids,w,o={})=>new D.TableCell({width:{size:w,type:D.WidthType.DXA},columnSpan:o.span,margins:B,
+    shading:o.fill?{type:D.ShadingType.CLEAR,fill:o.fill,color:'auto'}:undefined,children:kids});
+  const p=val(S.penyusun,'[Nama Guru Anda]').t,s=val(S.satuan,'[Nama Sekolah Anda]').t;
+  const info=[['Nama Penyusun',p],['Satuan Pendidikan',s],['Fase/Kelas',fk()],['Tahun Ajaran',S.tahun]].map(([a,b])=>
+    new D.TableRow({children:[cell([para(a,{bold:true})],3000),cell([para(b)],6638)]}));
+  const head=new D.TableRow({tableHeader:true,children:['No.','Elemen','Materi Pokok (Bab)','Tujuan Pembelajaran (TP)','Alokasi Waktu (JP)'].map((t,i)=>cell([para(t,{bold:true})],W[i],{fill:'DFEEE6'}))});
+  const rows=[head];let cur='';
+  sorted().forEach((r,n)=>{
+    if(r.sem!==cur){cur=r.sem;rows.push(new D.TableRow({children:[cell([para('SEMESTER '+cur,{bold:true})],9638,{span:5,fill:'EEF6F1'})]}))}
+    rows.push(new D.TableRow({children:[cell([para((n+1)+'.')],W[0]),cell([para(r.el,{bold:true})],W[1]),cell([para(r.bab,{bold:true})],W[2]),
+      cell(lines(r.tp).map(l=>para(l)),W[3]),cell([para(r.jp.trim()?r.jp.trim()+' JP':'')],W[4])]}));
+  });
+  rows.push(new D.TableRow({children:[cell([para('Total',{bold:true})],W[0]+W[1]+W[2]+W[3],{span:4}),cell([para(total()+' JP',{bold:true})],W[4])]}));
+  return new D.Document({sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:1134,bottom:1134,left:1134,right:1134}}},children:[
+    para('ALUR TUJUAN PEMBELAJARAN (ATP)',{bold:true,size:28},D.AlignmentType.CENTER),
+    para('MATA PELAJARAN: '+(S.mapel||'').toUpperCase(),{bold:true,size:24},D.AlignmentType.CENTER),
+    new D.Paragraph({spacing:{after:120},children:[]}),
+    new D.Table({width:{size:9638,type:D.WidthType.DXA},columnWidths:[3000,6638],rows:info}),
+    new D.Paragraph({spacing:{after:120},children:[]}),
+    para('Capaian Pembelajaran Fase '+S.fase+':',{bold:true}),
+    para(S.cp),
+    new D.Paragraph({spacing:{after:120},children:[]}),
+    new D.Table({width:{size:9638,type:D.WidthType.DXA},columnWidths:W,rows})
+  ]}]});
+}
+$('dl').addEventListener('click',async()=>{
+  $('msg').classList.remove('err');
+  try{
+    const blob=await window.docx.Packer.toBlob(buildDoc());
+    const name=`ATP_${S.mapel||'Mapel'}_Fase${S.fase}_Kelas${S.kelas}.docx`.replace(/[^\w.\-]+/g,'_');
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    $('msg').textContent='File Word diunduh.';
+  }catch(e){
+    $('msg').classList.add('err');
+    $('msg').textContent='Gagal membuat file Word. Coba lagi.';
+  }
+});
+
+/* Buat ATP otomatis: dipanggil langsung dari browser ke Google Gemini memakai kunci milik pengguna */
+const MODEL='gemini-2.5-flash'; // ganti bila Google mengubah nama model
+function buildPrompt(){
+  return 'Buatkan Alur Tujuan Pembelajaran (ATP) Kurikulum Merdeka untuk mata pelajaran "'+S.mapel.trim()+'", Fase '+S.fase+', Kelas '+S.kelas+', tahun ajaran '+S.tahun+'. '+
+  'Ikuti Capaian Pembelajaran resmi dari Kemendikdasmen/BSKAP untuk mata pelajaran dan fase tersebut. '+
+  'Susun 5 sampai 8 bab/materi pokok yang berurutan dan terbagi ke Semester 1 dan Semester 2. Tiap bab punya 3 sampai 5 tujuan pembelajaran (TP) berawalan kata kerja operasional, diberi nomor sesuai bab (misalnya 1.1, 1.2). '+
+  'Alokasi JP tiap bab realistis untuk satu tahun ajaran. Kolom elemen diisi elemen/strand mata pelajaran tersebut. Gunakan bahasa Indonesia. '+
+  'Balas HANYA dengan JSON tanpa teks lain, dengan bentuk: {"cp":"paragraf capaian pembelajaran fase","rows":[{"sem":"1","el":"nama elemen","bab":"Bab 1: judul","jp":"18","tp":["1.1 ...","1.2 ..."]}]}. Nilai sem hanya "1" atau "2"; jp hanya angka.';
+}
+async function generate(){
+  if(busy||!S.mapel.trim())return;
+  busy=true;chkGen();$('gmsg').classList.remove('err');
+  $('gen').textContent='Menyusun ATP…';$('gmsg').textContent='';
+  show('working');
+  try{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent',{
+      method:'POST',
+      headers:{'content-type':'application/json','x-goog-api-key':S.kunci.trim()},
+      body:JSON.stringify({contents:[{parts:[{text:buildPrompt()}]}],generationConfig:{responseMimeType:'application/json',temperature:0.4}})
+    });
+    const j=await r.json().catch(()=>({}));
+    if(r.status===400||r.status===401||r.status===403)throw new Error('Kunci API ditolak. Periksa kembali kunci Gemini Anda.');
+    if(r.status===404)throw new Error('Model AI tidak ditemukan. Ganti nilai MODEL di bagian script dengan nama model Gemini yang tersedia.');
+    if(r.status===429)throw new Error('Kuota gratis sedang penuh. Tunggu beberapa menit lalu coba lagi.');
+    if(!r.ok)throw new Error('Layanan AI sedang bermasalah (kode '+r.status+'). Coba lagi.');
+    const parts=(((j.candidates||[])[0]||{}).content||{}).parts||[];
+    const text=parts.map(x=>x.text||'').join('');
+    const i1=text.indexOf('{'),i2=text.lastIndexOf('}');
+    if(i1<0||i2<i1)throw new Error('Hasil AI tidak terbaca. Tekan tombol sekali lagi.');
+    const d=JSON.parse(text.slice(i1,i2+1));
+    if(typeof d.cp!=='string'||!Array.isArray(d.rows)||!d.rows.length)throw new Error('Hasil AI tidak lengkap. Tekan tombol sekali lagi.');
+    S.cp=d.cp;
+    S.rows=d.rows.map(x=>({sem:String(x.sem)==='2'?'2':'1',el:String(x.el||''),bab:String(x.bab||''),jp:String(parseInt(x.jp)||''),tp:(Array.isArray(x.tp)?x.tp:String(x.tp||'').split('\n')).join('\n')}));
+    $('cp').value=S.cp;renderRows();renderPaper();
+    show('result');
+    $('msg').classList.remove('err');
+    $('msg').textContent='ATP selesai. Periksa kembali isinya dan sesuaikan dengan CP resmi dan kebutuhan sekolah sebelum dipakai.';
+    $('gmsg').textContent='Selesai. Ganti isian di atas lalu tekan tombol lagi untuk membuat ATP lain.';
+    $('result').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){
+    show(S.rows.length?'result':'empty');
+    $('gmsg').classList.add('err');
+    $('gmsg').textContent=(e&&e.message)||'Gagal membuat ATP. Tekan tombol sekali lagi.';
+  }
+  busy=false;$('gen').textContent='Buat ATP sekarang';chkGen();
+}
+$('gen').addEventListener('click',generate);
+$('again').addEventListener('click',generate);
+
+fillFase();show('empty');chkGen();
+</script>
 </body>
 </html>
