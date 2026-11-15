@@ -193,7 +193,7 @@ function chkGen(){$('gen').disabled=busy||!S.mapel.trim()||!S.kunci.trim()}
 let busy=false;
 ['penyusun','satuan','mapel','tahun','kunci'].forEach(k=>{
   $(k).value=S[k];
-  $(k).addEventListener('input',e=>{S[k]=e.target.value;if(k==='penyusun'||k==='satuan'||k==='kunci')saveId();if(!$('result').hidden)renderPaper();chkGen()});
+  $(k).addEventListener('input',e=>{S[k]=e.target.value;if(k==='kunci')modelDipakai=null;if(k==='penyusun'||k==='satuan'||k==='kunci')saveId();if(!$('result').hidden)renderPaper();chkGen()});
 });
 $('cp').addEventListener('input',e=>{S.cp=e.target.value;renderPaper()});
 $('fase').addEventListener('change',e=>{S.fase=e.target.value;fillKelas();if(!$('result').hidden)renderPaper()});
@@ -249,7 +249,27 @@ $('dl').addEventListener('click',async()=>{
 });
 
 /* Buat ATP otomatis: dipanggil langsung dari browser ke Google Gemini memakai kunci milik pengguna */
-const MODEL='gemini-2.5-flash'; // ganti bila Google mengubah nama model
+let modelDipakai=null;
+const API='https://generativelanguage.googleapis.com/v1beta/';
+// Ambil daftar model dari akun Google pengguna, lalu pilih model Gemini Flash stabil yang terbaru.
+async function pilihModel(){
+  if(modelDipakai)return modelDipakai;
+  const r=await fetch(API+'models?pageSize=200',{headers:{'x-goog-api-key':S.kunci.trim()}});
+  const j=await r.json().catch(()=>({}));
+  if(r.status===400||r.status===401||r.status===403)throw new Error('Kunci API ditolak. Periksa kembali kunci Gemini Anda.');
+  if(r.status===429)throw new Error('Kuota gratis sedang penuh. Tunggu beberapa menit lalu coba lagi.');
+  if(!r.ok)throw new Error('Tidak bisa mengambil daftar model (kode '+r.status+'). Coba lagi.');
+  const semua=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>String(m.name||'').replace(/^models\//,''));
+  const teks=semua.filter(n=>/^gemini-/.test(n)&&!/(image|tts|live|audio|embedding|vision|robotics|computer|learnlm)/i.test(n));
+  const versi=n=>{const v=n.match(/gemini-(\d+(?:\.\d+)?)/);return v?parseFloat(v[1]):0};
+  const urut=a=>a.slice().sort((x,y)=>versi(y)-versi(x)||x.length-y.length);
+  const stabil=teks.filter(n=>!/(preview|exp|latest)/i.test(n));
+  const flash=stabil.filter(n=>/flash/i.test(n));
+  const pilihan=urut(flash.filter(n=>!/lite/i.test(n)))[0]||urut(flash)[0]||urut(stabil)[0]||urut(teks)[0];
+  if(!pilihan)throw new Error('Tidak ada model Gemini yang bisa dipakai untuk kunci ini.');
+  modelDipakai=pilihan;
+  return pilihan;
+}
 function buildPrompt(){
   return 'Buatkan Alur Tujuan Pembelajaran (ATP) Kurikulum Merdeka untuk mata pelajaran "'+S.mapel.trim()+'", Fase '+S.fase+', Kelas '+S.kelas+', tahun ajaran '+S.tahun+'. '+
   'Ikuti Capaian Pembelajaran resmi dari Kemendikdasmen/BSKAP untuk mata pelajaran dan fase tersebut. '+
@@ -263,14 +283,15 @@ async function generate(){
   $('gen').textContent='Menyusun ATP…';$('gmsg').textContent='';
   show('working');
   try{
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+MODEL+':generateContent',{
+    const MODEL=await pilihModel();
+    const r=await fetch(API+'models/'+MODEL+':generateContent',{
       method:'POST',
       headers:{'content-type':'application/json','x-goog-api-key':S.kunci.trim()},
       body:JSON.stringify({contents:[{parts:[{text:buildPrompt()}]}],generationConfig:{responseMimeType:'application/json',temperature:0.4}})
     });
     const j=await r.json().catch(()=>({}));
     if(r.status===400||r.status===401||r.status===403)throw new Error('Kunci API ditolak. Periksa kembali kunci Gemini Anda.');
-    if(r.status===404)throw new Error('Model AI tidak ditemukan. Ganti nilai MODEL di bagian script dengan nama model Gemini yang tersedia.');
+    if(r.status===404){modelDipakai=null;throw new Error('Model AI tidak ditemukan. Tekan tombol sekali lagi, aplikasi akan memilih model lain.')}
     if(r.status===429)throw new Error('Kuota gratis sedang penuh. Tunggu beberapa menit lalu coba lagi.');
     if(!r.ok)throw new Error('Layanan AI sedang bermasalah (kode '+r.status+'). Coba lagi.');
     const parts=(((j.candidates||[])[0]||{}).content||{}).parts||[];
