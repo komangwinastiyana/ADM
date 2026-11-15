@@ -1,0 +1,7 @@
+{
+  "name": "generator-atp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generator Alur Tujuan Pembelajaran (ATP) Kurikulum Merdeka",
+  "engines": { "node": ">=18" }
+}
